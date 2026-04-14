@@ -1,0 +1,29 @@
+# ─── Secrets (NEVER push these) ───────────────────
+.env
+*.env.local
+
+# ─── Node.js ──────────────────────────────────────
+node_modules/
+package-lock.json
+
+# ─── Python ───────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+*.egg-info/
+
+# ─── System files ─────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ─── Netlify ──────────────────────────────────────
+.netlify/
+
+# ─── Logs ─────────────────────────────────────────
+*.log
+logs/

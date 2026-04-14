@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SciLearn KH — Grade 11 Science Tutor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=IBM+Plex+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ─── Design Tokens ─────────────────────────────────── */
+    :root {
+      --bg:        #07090f;
+      --bg2:       #0d1120;
+      --bg3:       #131829;
+      --border:    #1e2a45;
+      --cyan:      #00e5c3;
+      --amber:     #f5a623;
+      --rose:      #ff5e7d;
+      --blue:      #4d9fff;
+      --text:      #c8d4ee;
+      --text-dim:  #5a6a8a;
+      --text-hi:   #edf2ff;
+      --mono:      'IBM Plex Mono', monospace;
+      --serif:     'DM Serif Display', serif;
+      --sans:      'Sora', sans-serif;
+      --radius:    12px;
+      --glow-c:    0 0 24px rgba(0,229,195,0.18);
+      --glow-a:    0 0 24px rgba(245,166,35,0.2);
+    }
+
+    /* ─── Reset ──────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── Noise + Grid Background ───────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image:
+        linear-gradient(rgba(0,229,195,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,229,195,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+    }
+    body::after {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0,229,195,0.07), transparent);
+      pointer-events: none;
+    }
+
+    /* ─── Layout ─────────────────────────────────────────── */
+    .app { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* ─── Header ─────────────────────────────────────────── */
+    header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 32px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(7,9,15,0.85);
+      backdrop-filter: blur(16px);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .logo {
+      display: flex; align-items: center; gap: 10px;
+      text-decoration: none;
+    }
+    .logo-icon {
+      width: 34px; height: 34px;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      border-radius: 8px;
+      display: grid; place-items: center;
+      font-size: 16px;
+    }
+    .logo-text { font-family: var(--serif); font-size: 20px; color: var(--text-hi); }
+    .logo-tag { font-family: var(--mono); font-size: 10px; color: var(--cyan); letter-spacing: 2px; text-transform: uppercase; }
+
+    nav { display: flex; gap: 4px; }
+    nav button {
+      background: none; border: none; cursor: pointer;
+      font-family: var(--sans); font-size: 13px; font-weight: 500;
+      color: var(--text-dim);
+      padding: 7px 14px; border-radius: 8px;
+      transition: all .2s;
+    }
+    nav button:hover, nav button.active {
+      color: var(--text-hi);
+      background: var(--bg3);
+    }
+    nav button.active { color: var(--cyan); }
+
+    /* ─── Hero ───────────────────────────────────────────── */
+    .hero {
+      padding: 80px 32px 60px;
+      text-align: center;
+      animation: fadeUp .7s ease both;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(0,229,195,0.08); border: 1px solid rgba(0,229,195,0.2);
+      padding: 4px 14px; border-radius: 99px;
+      font-family: var(--mono); font-size: 11px; color: var(--cyan);
+      letter-spacing: 1px; margin-bottom: 24px;
+    }
+    .hero-badge span { width: 6px; height: 6px; background: var(--cyan); border-radius: 50%; animation: pulse 2s infinite; }
+    .hero h1 {
+      font-family: var(--serif); font-size: clamp(36px, 6vw, 64px);
+      color: var(--text-hi); line-height: 1.1;
+      margin-bottom: 16px;
+    }
+    .hero h1 em { font-style: italic; color: var(--cyan); }
+    .hero p { color: var(--text-dim); font-size: 16px; max-width: 520px; margin: 0 auto 36px; }
+
+    /* ─── Subject Cards ──────────────────────────────────── */
+    .subjects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      padding: 0 32px 48px;
+      max-width: 900px; margin: 0 auto;
+      width: 100%;
+    }
+    .subject-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      cursor: pointer;
+      transition: all .25s;
+      display: flex; align-items: center; gap: 14px;
+      animation: fadeUp .7s ease both;
+    }
+    .subject-card:nth-child(1) { animation-delay: .1s; }
+    .subject-card:nth-child(2) { animation-delay: .2s; }
+    .subject-card:nth-child(3) { animation-delay: .3s; }
+    .subject-card:nth-child(4) { animation-delay: .4s; }
+    .subject-card:hover { border-color: var(--cyan); transform: translateY(-2px); box-shadow: var(--glow-c); }
+    .subject-card.selected { border-color: var(--cyan); background: rgba(0,229,195,0.06); }
+    .subject-icon { font-size: 28px; flex-shrink: 0; }
+    .subject-info { min-width: 0; }
+    .subject-name { font-weight: 600; font-size: 14px; color: var(--text-hi); }
+    .subject-desc { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+
+    /* ─── Chat Section ───────────────────────────────────── */
+    .chat-section {
+      flex: 1;
+      max-width: 860px; width: 100%;
+      margin: 0 auto;
+      padding: 0 32px 40px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .chat-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 20px;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .chat-header-left { display: flex; align-items: center; gap: 12px; }
+    .ai-avatar {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      display: grid; place-items: center; font-size: 16px;
+      flex-shrink: 0;
+    }
+    .ai-name { font-weight: 600; font-size: 14px; color: var(--text-hi); }
+    .ai-status { font-size: 12px; color: var(--cyan); display: flex; align-items: center; gap: 5px; }
+    .ai-status::before { content:''; width:6px;height:6px;background:var(--cyan);border-radius:50%;animation:pulse 2s infinite; }
+    .subject-pill {
+      font-family: var(--mono); font-size: 11px;
+      padding: 4px 10px; border-radius: 99px;
+      border: 1px solid var(--border); color: var(--text-dim);
+    }
+    .subject-pill.active { border-color: var(--cyan); color: var(--cyan); background: rgba(0,229,195,0.08); }
+
+    /* ─── Messages Window ────────────────────────────────── */
+    #messages {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      min-height: 340px; max-height: 460px;
+      overflow-y: auto;
+      display: flex; flex-direction: column; gap: 16px;
+      scroll-behavior: smooth;
+    }
+    #messages::-webkit-scrollbar { width: 4px; }
+    #messages::-webkit-scrollbar-track { background: transparent; }
+    #messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .message {
+      display: flex; gap: 12px;
+      animation: fadeUp .3s ease both;
+    }
+    .message.user { flex-direction: row-reverse; }
+    .msg-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      flex-shrink: 0; display: grid; place-items: center; font-size: 13px;
+      background: var(--bg3); border: 1px solid var(--border);
+      align-self: flex-end;
+    }
+    .message.ai .msg-avatar { background: linear-gradient(135deg, var(--cyan), var(--blue)); border: none; }
+    .msg-bubble {
+      max-width: 75%;
+      padding: 12px 16px;
+      border-radius: 14px;
+      font-size: 14px; line-height: 1.65;
+    }
+    .message.ai .msg-bubble {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+      color: var(--text);
+    }
+    .message.user .msg-bubble {
+      background: rgba(0,229,195,0.12); border: 1px solid rgba(0,229,195,0.25);
+      border-bottom-right-radius: 4px;
+      color: var(--text-hi);
+    }
+    .msg-bubble strong { color: var(--cyan); }
+    .msg-bubble code {
+      font-family: var(--mono); font-size: 12px;
+      background: rgba(0,0,0,0.35); padding: 2px 6px; border-radius: 4px;
+      color: var(--amber);
+    }
+    .msg-bubble pre {
+      background: rgba(0,0,0,0.4); border: 1px solid var(--border);
+      border-radius: 8px; padding: 12px; margin-top: 8px;
+      overflow-x: auto; font-family: var(--mono); font-size: 12px;
+      color: var(--amber);
+    }
+    .msg-time { font-size: 10px; color: var(--text-dim); margin-top: 4px; font-family: var(--mono); }
+    .message.user .msg-time { text-align: right; }
+
+    /* Typing indicator */
+    .typing-bubble { display: flex; gap: 4px; align-items: center; padding: 14px 18px; }
+    .typing-bubble span {
+      width: 7px; height: 7px; background: var(--text-dim);
+      border-radius: 50%; animation: bounce 1.2s infinite;
+    }
+    .typing-bubble span:nth-child(2) { animation-delay: .2s; }
+    .typing-bubble span:nth-child(3) { animation-delay: .4s; }
+
+    /* ─── Input Bar ──────────────────────────────────────── */
+    .input-bar {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius);
+      display: flex; align-items: flex-end; gap: 10px;
+      padding: 12px 14px;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .input-bar:focus-within { border-color: var(--cyan); box-shadow: var(--glow-c); }
+    #userInput {
+      flex: 1; background: none; border: none; outline: none;
+      color: var(--text-hi); font-family: var(--sans); font-size: 14px;
+      resize: none; max-height: 120px; line-height: 1.5;
+    }
+    #userInput::placeholder { color: var(--text-dim); }
+    .send-btn {
+      width: 38px; height: 38px; border-radius: 10px;
+      background: var(--cyan); border: none; cursor: pointer;
+      display: grid; place-items: center; flex-shrink: 0;
+      transition: all .2s;
+    }
+    .send-btn:hover { background: #00ffd4; transform: scale(1.05); }
+    .send-btn:disabled { background: var(--border); cursor: not-allowed; transform: none; }
+    .send-btn svg { width: 16px; height: 16px; fill: none; stroke: #07090f; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ─── Quick Starters ─────────────────────────────────── */
+    .quick-starters {
+      display: flex; flex-wrap: wrap; gap: 8px;
+    }
+    .qs-chip {
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 99px; padding: 6px 14px;
+      font-size: 12px; color: var(--text-dim); cursor: pointer;
+      transition: all .2s; white-space: nowrap;
+    }
+    .qs-chip:hover { border-color: var(--cyan); color: var(--cyan); background: rgba(0,229,195,0.07); }
+
+    /* ─── Topics Panel ───────────────────────────────────── */
+    .topics-panel {
+      display: none;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px;
+    }
+    .topics-panel.visible { display: block; animation: fadeUp .3s ease; }
+    .topics-title { font-size: 12px; font-family: var(--mono); color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 14px; }
+    .topics-list { display: flex; flex-wrap: wrap; gap: 8px; }
+    .topic-tag {
+      background: var(--bg3); border: 1px solid var(--border);
+      padding: 5px 12px; border-radius: 6px;
+      font-size: 12px; color: var(--text); cursor: pointer;
+      transition: all .15s;
+    }
+    .topic-tag:hover { border-color: var(--amber); color: var(--amber); }
+
+    /* ─── Footer ─────────────────────────────────────────── */
+    footer {
+      padding: 20px 32px;
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      font-family: var(--mono); font-size: 11px; color: var(--text-dim);
+    }
+    footer a { color: var(--text-dim); text-decoration: none; }
+    footer a:hover { color: var(--cyan); }
+
+    /* ─── Animations ─────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: .4; }
+    }
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-6px); }
+    }
+
+    /* ─── Responsive ─────────────────────────────────────── */
+    @media (max-width: 600px) {
+      header { padding: 12px 16px; }
+      nav button { padding: 6px 10px; font-size: 12px; }
+      .hero { padding: 48px 16px 36px; }
+      .subjects-grid, .chat-section { padding-left: 16px; padding-right: 16px; }
+      .msg-bubble { max-width: 90%; }
+    }
+
+    /* ─── Scrollbar for #messages ─── */
+    .welcome-msg {
+      text-align: center; color: var(--text-dim);
+      padding: 32px 20px; font-size: 14px;
+    }
+    .welcome-msg .icon { font-size: 40px; margin-bottom: 12px; display: block; }
+    .welcome-msg strong { color: var(--text); display: block; margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ─── Header ─────────────────────────────── -->
+  <header>
+    <a class="logo" href="#">
+      <div class="logo-icon">⚗️</div>
+      <div>
+        <div class="logo-text">SciLearn KH</div>
+        <div class="logo-tag">Grade 11 · Cambodia</div>
+      </div>
+    </a>
+    <nav>
+      <button class="active" onclick="showSection('chat')">AI Tutor</button>
+      <button onclick="showSection('topics')">Topics</button>
+      <button onclick="showSection('about')">About</button>
+    </nav>
+  </header>
+
+  <!-- ─── Hero ───────────────────────────────── -->
+  <div class="hero" id="section-chat">
+    <div class="hero-badge"><span></span> AI-Powered · Gemini Pro</div>
+    <h1>Your personal<br/><em>Science Tutor</em></h1>
+    <p>Ask anything about Physics, Chemistry, Biology, or Math — explained clearly, step by step, at Grade 11 level.</p>
+  </div>
+
+  <!-- ─── Subject Selector ────────────────────── -->
+  <div class="subjects-grid">
+    <div class="subject-card selected" data-subject="Physics" onclick="selectSubject(this)">
+      <span class="subject-icon">⚛️</span>
+      <div class="subject-info">
+        <div class="subject-name">Physics</div>
+        <div class="subject-desc">Mechanics, Waves, Electricity</div>
+      </div>
+    </div>
+    <div class="subject-card" data-subject="Chemistry" onclick="selectSubject(this)">
+      <span class="subject-icon">🧪</span>
+      <div class="subject-info">
+        <div class="subject-name">Chemistry</div>
+        <div class="subject-desc">Bonds, Reactions, Organic</div>
+      </div>
+    </div>
+    <div class="subject-card" data-subject="Biology" onclick="selectSubject(this)">
+      <span class="subject-icon">🧬</span>
+      <div class="subject-info">
+        <div class="subject-name">Biology</div>
+        <div class="subject-desc">Cells, Genetics, Ecology</div>
+      </div>
+    </div>
+    <div class="subject-card" data-subject="Math" onclick="selectSubject(this)">
+      <span class="subject-icon">📐</span>
+      <div class="subject-info">
+        <div class="subject-name">Math</div>
+        <div class="subject-desc">Calculus, Algebra, Statistics</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Chat Interface ───────────────────────── -->
+  <div class="chat-section">
+    <div class="chat-header">
+      <div class="chat-header-left">
+        <div class="ai-avatar">🤖</div>
+        <div>
+          <div class="ai-name">Prof. Gemini</div>
+          <div class="ai-status" id="aiStatus">Ready to help</div>
+        </div>
+      </div>
+      <div class="subject-pill active" id="currentSubjectPill">⚛️ Physics</div>
+    </div>
+
+    <div id="messages">
+      <div class="welcome-msg" id="welcomeMsg">
+        <span class="icon">🎓</span>
+        <strong>Welcome! I'm your Grade 11 Science Tutor.</strong>
+        Select a subject above and ask me anything — I'll explain it clearly with examples and step-by-step solutions.
+      </div>
+    </div>
+
+    <div class="quick-starters" id="quickStarters">
+      <div class="qs-chip" onclick="askQuick(this)">What is Newton's 2nd Law?</div>
+      <div class="qs-chip" onclick="askQuick(this)">Explain kinetic energy</div>
+      <div class="qs-chip" onclick="askQuick(this)">How does diffraction work?</div>
+      <div class="qs-chip" onclick="askQuick(this)">Solve: F = ma with F=20N, m=4kg</div>
+    </div>
+
+    <div class="input-bar">
+      <textarea id="userInput" rows="1" placeholder="Ask a science question..." 
+        oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+        <svg viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── Topics Section ───────────────────────── -->
+  <div class="topics-panel" id="section-topics" style="max-width:860px;width:100%;margin:0 auto 40px;padding:0 32px;">
+    <!-- injected by JS -->
+  </div>
+
+  <!-- ─── Footer ───────────────────────────────── -->
+  <footer>
+    <span>© 2025 SciLearn KH · Built for Grade 11 Students in Cambodia</span>
+    <span>Powered by <a href="#">Gemini API</a> · Hosted on <a href="#">Netlify</a></span>
+  </footer>
+
+</div>
+
+<script>
+  /* ─── State ──────────────────────────────── */
+  let selectedSubject = 'Physics';
+  let conversationHistory = [];
+  let isLoading = false;
+
+  const SUBJECT_CONFIG = {
+    Physics:   { icon:'⚛️', color:'#4d9fff', tips:['Newton\'s Laws','Kinematics','Waves','Thermodynamics','Electricity','Optics','Gravity','Momentum'] },
+    Chemistry: { icon:'🧪', color:'#00e5c3', tips:['Atomic Structure','Chemical Bonds','Reactions','Moles','Organic Chem','Acids & Bases','Periodic Table','Stoichiometry'] },
+    Biology:   { icon:'🧬', color:'#7bed9f', tips:['Cell Biology','Genetics','DNA & RNA','Photosynthesis','Respiration','Evolution','Ecology','Human Body'] },
+    Math:      { icon:'📐', color:'#f5a623', tips:['Calculus','Trigonometry','Logarithms','Sequences','Statistics','Vectors','Polynomials','Matrices'] },
+  };
+
+  const QUICK_QUESTIONS = {
+    Physics:   ['What is Newton\'s 2nd Law?','Explain kinetic energy','How does diffraction work?','Solve: F = ma, F=20N m=4kg'],
+    Chemistry: ['What is ionic bonding?','Explain mole concept','How to balance equations?','What are isotopes?'],
+    Biology:   ['Explain DNA replication','What is mitosis?','How does photosynthesis work?','Explain natural selection'],
+    Math:      ['Differentiate x² + 3x','Solve log₂(8)','Explain the chain rule','What is standard deviation?'],
+  };
+
+  /* ─── Subject Selection ──────────────────── */
+  function selectSubject(el) {
+    document.querySelectorAll('.subject-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedSubject = el.dataset.subject;
+    const cfg = SUBJECT_CONFIG[selectedSubject];
+    document.getElementById('currentSubjectPill').textContent = cfg.icon + ' ' + selectedSubject;
+    document.getElementById('currentSubjectPill').classList.add('active');
+    updateQuickStarters();
+    conversationHistory = []; // fresh context per subject
+  }
+
+  function updateQuickStarters() {
+    const qs = document.getElementById('quickStarters');
+    qs.innerHTML = QUICK_QUESTIONS[selectedSubject].map(q =>
+      `<div class="qs-chip" onclick="askQuick(this)">${q}</div>`
+    ).join('');
+  }
+
+  function askQuick(el) {
+    document.getElementById('userInput').value = el.textContent;
+    sendMessage();
+  }
+
+  /* ─── Section Nav ────────────────────────── */
+  function showSection(name) {
+    document.querySelectorAll('nav button').forEach((b,i) => {
+      b.classList.toggle('active', ['chat','topics','about'][i] === name);
+    });
+    const topicsEl = document.getElementById('section-topics');
+    if (name === 'topics') {
+      topicsEl.classList.add('visible');
+      renderTopics();
+    } else {
+      topicsEl.classList.remove('visible');
+    }
+  }
+
+  function renderTopics() {
+    const panel = document.getElementById('section-topics');
+    panel.innerHTML = Object.entries(SUBJECT_CONFIG).map(([subj, cfg]) => `
+      <div style="margin-bottom:20px">
+        <div class="topics-title">${cfg.icon} ${subj}</div>
+        <div class="topics-list">
+          ${cfg.tips.map(t => `<span class="topic-tag" onclick="topicClick('${subj}','${t}')">${t}</span>`).join('')}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function topicClick(subj, topic) {
+    selectedSubject = subj;
+    document.querySelectorAll('.subject-card').forEach(c => {
+      c.classList.toggle('selected', c.dataset.subject === subj);
+    });
+    document.getElementById('currentSubjectPill').textContent = SUBJECT_CONFIG[subj].icon + ' ' + subj;
+    showSection('chat');
+    document.getElementById('userInput').value = `Explain ${topic} in ${subj} for Grade 11`;
+    sendMessage();
+  }
+
+  /* ─── Message Rendering ──────────────────── */
+  function renderMarkdown(text) {
+    return text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/```([\s\S]*?)```/g, '<pre>$1</pre>')
+      .replace(/\n/g, '<br/>');
+  }
+
+  function addMessage(role, content) {
+    const msgs = document.getElementById('messages');
+    const welcome = document.getElementById('welcomeMsg');
+    if (welcome) welcome.remove();
+    const now = new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    const div = document.createElement('div');
+    div.className = `message ${role}`;
+    div.innerHTML = `
+      <div class="msg-avatar">${role === 'ai' ? '🤖' : '🧑'}</div>
+      <div>
+        <div class="msg-bubble">${role === 'ai' ? renderMarkdown(content) : content}</div>
+        <div class="msg-time">${now}</div>
+      </div>`;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function showTyping() {
+    const msgs = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.className = 'message ai'; div.id = 'typing';
+    div.innerHTML = `<div class="msg-avatar">🤖</div><div class="msg-bubble typing-bubble"><span></span><span></span><span></span></div>`;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+  function removeTyping() { document.getElementById('typing')?.remove(); }
+
+  /* ─── Send Message ───────────────────────── */
+  async function sendMessage() {
+    const input = document.getElementById('userInput');
+    const text = input.value.trim();
+    if (!text || isLoading) return;
+    input.value = ''; autoResize(input);
+    isLoading = true;
+    document.getElementById('sendBtn').disabled = true;
+    document.getElementById('aiStatus').textContent = 'Thinking...';
+
+    addMessage('user', text);
+    conversationHistory.push({ role: 'user', parts: [{ text }] });
+    showTyping();
+
+    try {
+      // ── Netlify Function call ──
+      const res = await fetch('/.netlify/functions/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject: selectedSubject, history: conversationHistory })
+      });
+      const data = await res.json();
+      removeTyping();
+      if (data.error) throw new Error(data.error);
+      const reply = data.reply;
+      conversationHistory.push({ role: 'model', parts: [{ text: reply }] });
+      addMessage('ai', reply);
+    } catch (err) {
+      removeTyping();
+      addMessage('ai', `⚠️ **Error:** ${err.message || 'Could not reach AI. Check your Netlify function and API key.'}`);
+    }
+
+    isLoading = false;
+    document.getElementById('sendBtn').disabled = false;
+    document.getElementById('aiStatus').textContent = 'Ready to help';
+  }
+
+  /* ─── Helpers ────────────────────────────── */
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+  }
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  }
+</script>
+</body>
+</html>
